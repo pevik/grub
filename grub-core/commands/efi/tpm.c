@@ -56,9 +56,12 @@ grub_tpm1_present (grub_efi_tpm_protocol_t *tpm)
 
   if (status != GRUB_EFI_SUCCESS || caps.TPMDeactivatedFlag
       || !caps.TPMPresentFlag)
-    return tpm1_present = 0;
+    tpm1_present = 0;
 
-  return tpm1_present = 1;
+  tpm1_present = 1;
+
+  grub_dprintf ("tpm", "tpm1 %s present\n", tpm1_present ? "" : "NOT");
+  return (grub_efi_boolean_t) tpm1_present;
 }
 
 static grub_efi_boolean_t
@@ -75,9 +78,12 @@ grub_tpm2_present (grub_efi_tpm2_protocol_t *tpm)
   status = efi_call_2 (tpm->get_capability, tpm, &caps);
 
   if (status != GRUB_EFI_SUCCESS || !caps.TPMPresentFlag)
-    return tpm2_present = 0;
+    tpm2_present = 0;
 
-  return tpm2_present = 1;
+  tpm2_present = 1;
+
+  grub_dprintf ("tpm", "tpm2 %s present\n", tpm2_present ? "" : "NOT");
+  return (grub_efi_boolean_t) tpm2_present;
 }
 
 static grub_efi_boolean_t
@@ -102,6 +108,7 @@ grub_tpm_handle_find (grub_efi_handle_t *tpm_handle,
       *tpm_handle = handles[0];
       grub_tpm_version = 1;
       *protocol_version = 1;
+      grub_dprintf ("tpm", "TPM handle Found, version: 1\n");
       return 1;
     }
 
@@ -113,9 +120,11 @@ grub_tpm_handle_find (grub_efi_handle_t *tpm_handle,
       *tpm_handle = handles[0];
       grub_tpm_version = 2;
       *protocol_version = 2;
+      grub_dprintf ("tpm", "TPM handle Found, version: 2\n");
       return 1;
     }
 
+  grub_dprintf ("tpm", "NO TPM handle Found\n");
   return 0;
 }
 
@@ -147,6 +156,8 @@ grub_tpm1_log_event (grub_efi_handle_t tpm_handle, unsigned char *buf,
   event->EventSize = grub_strlen (description) + 1;
   grub_memcpy (event->Event, description, event->EventSize);
 
+  grub_dprintf ("tpm", "tpm1 log_extend_event, pcr = %d, size = %d, %s\n",
+                pcr, (int)size, description);
   algorithm = TCG_ALG_SHA;
   status = efi_call_7 (tpm->log_extend_event, tpm, (grub_addr_t) buf, (grub_uint64_t) size,
 		       algorithm, event, &eventnum, &lastevent);
@@ -199,6 +210,8 @@ grub_tpm2_log_event (grub_efi_handle_t tpm_handle, unsigned char *buf,
     sizeof (*event) - sizeof (event->Event) + grub_strlen (description) + 1;
   grub_memcpy (event->Event, description, grub_strlen (description) + 1);
 
+  grub_dprintf ("tpm", "tpm2 log_extend_event, pcr = %d, size = %d, %s\n",
+                pcr, (int)size, description);
   status = efi_call_5 (tpm->hash_log_extend_event, tpm, 0, (grub_addr_t) buf,
 		       (grub_uint64_t) size, event);
   grub_free (event);
