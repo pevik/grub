@@ -12,6 +12,7 @@ language: c
 addons:
   apt:
     packages:
+    - autopoint
     - libsdl1.2-dev
     - lzop
     - ovmf
@@ -35,12 +36,12 @@ before_script:
 script:
   # Comments must be outside the command strings below, or the Travis parser
   # will get confused.
-  - ./autogen.sh
+  - ./bootstrap
 
   # Build all selected GRUB targets.
   - for target in $GRUB_TARGETS; do
-      plat=${target#*-};
-      arch=${target%-*};
+      arch=$(echo $target | cut -d- -f1);
+      plat=$(echo $target | cut -d- -f2);
       [ "$arch" = "arm64" ] && arch=aarch64-linux;
       [ "$arch" = "arm" ] && arch=arm-linux-gnueabi;
       [ "$arch" = "ia64" ] && arch=ia64-linux;
@@ -80,16 +81,12 @@ matrix:
         - CROSS_TARGETS="powerpc64-linux"
     - name: "sparc64"
       env:
-        - GRUB_TARGETS="sparc64-ieee1275"
+        - GRUB_TARGETS="sparc64-ieee1275-aout sparc64-ieee1275-cdcore sparc64-ieee1275-raw"
         - CROSS_TARGETS="sparc64-linux"
     - name: "ia64"
       env:
         - GRUB_TARGETS="ia64-efi"
         - CROSS_TARGETS="ia64-linux"
-    - name: "mips"
-      env:
-        - GRUB_TARGETS="mips-arc mipsel-arc mipsel-qemu_mips mips-qemu_mips"
-        - CROSS_TARGETS="mips64-linux"
     - name: "arm"
       env:
         - GRUB_TARGETS="arm-coreboot arm-efi arm-uboot"
@@ -98,10 +95,6 @@ matrix:
       env:
         - GRUB_TARGETS="arm64-efi"
         - CROSS_TARGETS="aarch64-linux"
-    - name: "riscv32"
-      env:
-        - GRUB_TARGETS="riscv32-efi"
-        - CROSS_TARGETS="riscv32-linux"
     - name: "riscv64"
       env:
         - GRUB_TARGETS="riscv64-efi"
