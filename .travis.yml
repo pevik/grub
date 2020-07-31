@@ -99,10 +99,6 @@ matrix:
       env:
         - GRUB_TARGETS="arm64-efi"
         - CROSS_TARGETS="aarch64-linux"
-    - name: "riscv32"
-      env:
-        - GRUB_TARGETS="riscv32-efi"
-        - CROSS_TARGETS="riscv32-linux"
     - name: "riscv64"
       env:
         - GRUB_TARGETS="riscv64-efi"
