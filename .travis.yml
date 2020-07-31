@@ -40,8 +40,8 @@ script:
 
   # Build all selected GRUB targets.
   - for target in $GRUB_TARGETS; do
-      plat=${target#*-};
-      arch=${target%-*};
+      arch=$(echo $target | cut -d- -f1);
+      plat=$(echo $target | cut -d- -f2);
       [ "$arch" = "arm64" ] && arch=aarch64-linux;
       [ "$arch" = "arm" ] && arch=arm-linux-gnueabi;
       [ "$arch" = "ia64" ] && arch=ia64-linux;
@@ -81,7 +81,7 @@ matrix:
         - CROSS_TARGETS="powerpc64-linux"
     - name: "sparc64"
       env:
-        - GRUB_TARGETS="sparc64-ieee1275"
+        - GRUB_TARGETS="sparc64-ieee1275-aout sparc64-ieee1275-cdcore sparc64-ieee1275-raw"
         - CROSS_TARGETS="sparc64-linux"
     - name: "ia64"
       env:
