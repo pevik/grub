@@ -5,8 +5,6 @@
 # Build GRUB on Travis CI - https://www.travis-ci.org/
 #
 
-dist: xenial
-
 language: c
 
 addons:
@@ -54,14 +52,18 @@ script:
       mkdir obj-$target;
       JOBS=`getconf _NPROCESSORS_ONLN 2> /dev/null || echo 1`;
       [ "$JOBS" == 1 ] || JOBS=$(($JOBS + 1));
+      ( echo cd obj-$target && echo ../configure --target=$arch --with-platform=$plat --prefix=/tmp/grub && echo make -j$JOBS && echo make -j$JOBS install );
       ( cd obj-$target && ../configure --target=$arch --with-platform=$plat --prefix=/tmp/grub && make -j$JOBS && make -j$JOBS install ) &> log || ( cat log; false );
     done
 
   # Our test canary.
   - echo -e "insmod echo\\ninsmod reboot\\necho hello world\\nreboot" > grub.cfg
 
+  - echo === find ===
+  - find /tmp/grub/lib/grub/
   # Assemble images and possibly run them.
-  - for target in $GRUB_TARGETS; do grub-mkimage -c grub.cfg -p / -O $target -o grub-$target echo reboot normal; done
+  #- for target in $GRUB_TARGETS; do grub-mkimage -c grub.cfg -p / -O $target -o grub-$target echo reboot normal; done
+  - for target in $GRUB_TARGETS; do echo grub-mkimage -c grub.cfg -p / -O $target -o grub-$target echo reboot normal; grub-mkimage -c grub.cfg -p / -O $target -o grub-$target echo reboot normal; done
 
   # Run images we know how to run.
   - if [[ "$GRUB_TARGETS" == *"x86_64-efi"* ]]; then qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -m 512 -no-reboot -nographic -net nic -net user,tftp=.,bootfile=grub-x86_64-efi | tee grub.log && grep "hello world" grub.log; fi
