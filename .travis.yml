@@ -61,6 +61,14 @@ script:
   # Our test canary.
   - echo -e "insmod echo\\ninsmod reboot\\necho hello world\\nreboot" > grub.cfg
 
+  # FIXME: debug
+  - echo "ls -la /usr/lib/grub/"
+  - ls -la /usr/lib/grub/
+  - echo "target $target";
+  - echo "arch $arch";
+  - echo "plat $plat";
+  # FIXME: debug
+
   # Assemble images and possibly run them.
   - for target in $GRUB_TARGETS; do grub-mkimage -c grub.cfg -p / -O $target -o grub-$target echo reboot normal; done
 
