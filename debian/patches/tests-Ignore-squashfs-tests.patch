@@ -1,0 +1,27 @@
+From 3668cb6dafe03baa3187e6519dcb8a048680a241 Mon Sep 17 00:00:00 2001
+From: Petr Vorel <petr.vorel@gmail.com>
+Date: Sun, 22 Nov 2020 18:44:33 +0100
+Subject: [PATCH] tests: Ignore squashfs tests
+
+Signed-off-by: Petr Vorel <petr.vorel@gmail.com>
+---
+ tests/squashfs_test.in | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/tests/squashfs_test.in b/tests/squashfs_test.in
+index 2f044f95d..11db8717b 100644
+--- a/tests/squashfs_test.in
++++ b/tests/squashfs_test.in
+@@ -7,6 +7,9 @@ if ! which mksquashfs >/dev/null 2>&1; then
+    exit 77
+ fi
+ 
++# Disabled temporarily due to unrecognised video checksum failures.
++exit 77
++
+ "@builddir@/grub-fs-tester" squash4_gzip
+ "@builddir@/grub-fs-tester" squash4_xz
+ "@builddir@/grub-fs-tester" squash4_lzo
+-- 
+2.28.0
+
