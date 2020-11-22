@@ -1,0 +1,2 @@
+ignore-grub_func_test-failures.patch
+dpkg-version-comparison.patch
