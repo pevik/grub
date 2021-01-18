@@ -39,8 +39,8 @@
 #define MEMORY_MAP_SIZE	0x3000
 
 /* The minimum and maximum heap size for GRUB itself.  */
-#define MIN_HEAP_SIZE	0x100000
-#define MAX_HEAP_SIZE	(1600 * 0x100000)
+#define MIN_HEAP_PAGES		BYTES_TO_PAGES(       0x100000)
+#define TARGET_HEAP_PAGES	BYTES_TO_PAGES(1600 * 0x100000)
 
 static void *finish_mmap_buf = 0;
 static grub_efi_uintn_t finish_mmap_size = 0;
@@ -570,7 +570,7 @@ grub_efi_mm_init (void)
   grub_efi_uintn_t map_size;
   grub_efi_uintn_t desc_size;
   grub_efi_uint64_t total_pages;
-  grub_efi_uint64_t required_pages;
+  grub_efi_uint64_t target_heap_pages;
   int mm_status;
 
   /* Prepare a memory region to store two memory maps.  */
@@ -610,14 +610,15 @@ grub_efi_mm_init (void)
   filtered_memory_map_end = filter_memory_map (memory_map, filtered_memory_map,
 					       desc_size, memory_map_end);
 
-  /* By default, request a quarter of the available memory.  */
+  /* By default, request TARGET_HEAP_PAGES pages. If that exceeds half of meory
+   * available, clamp it, but request at least MIN_HEAP_PAGES. */
   total_pages = get_total_pages (filtered_memory_map, desc_size,
 				 filtered_memory_map_end);
-  required_pages = (total_pages >> 2);
-  if (required_pages < BYTES_TO_PAGES (MIN_HEAP_SIZE))
-    required_pages = BYTES_TO_PAGES (MIN_HEAP_SIZE);
-  else if (required_pages > BYTES_TO_PAGES (MAX_HEAP_SIZE))
-    required_pages = BYTES_TO_PAGES (MAX_HEAP_SIZE);
+  target_heap_pages = TARGET_HEAP_PAGES;
+  if (target_heap_pages > (total_pages / 2))
+    target_heap_pages = total_pages / 2;
+  if (target_heap_pages < MIN_HEAP_PAGES)
+    target_heap_pages = MIN_HEAP_PAGES;
 
   /* Sort the filtered descriptors, so that GRUB can allocate pages
      from smaller regions.  */
@@ -625,7 +626,7 @@ grub_efi_mm_init (void)
 
   /* Allocate memory regions for GRUB's memory management.  */
   add_memory_regions (filtered_memory_map, desc_size,
-		      filtered_memory_map_end, required_pages);
+		      filtered_memory_map_end, target_heap_pages);
 
 #if 0
   /* For debug.  */
