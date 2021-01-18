@@ -121,9 +121,6 @@ void grub_free_memory(const argon2_context *context, grub_uint8_t *memory,
 #if defined(__OpenBSD__)
 #define HAVE_EXPLICIT_BZERO 1
 #elif defined(__GLIBC__) && defined(__GLIBC_PREREQ)
-#if __GLIBC_PREREQ(2,25)
-#define HAVE_EXPLICIT_BZERO 1
-#endif
 #endif
 
 void NOT_OPTIMIZED secure_wipe_memory(void *v, grub_size_t n) {
